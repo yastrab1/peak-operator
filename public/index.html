@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>peak-operator</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { margin-bottom: 1rem; }
+  .op { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+  button { padding: .5rem 1rem; cursor: pointer; }
+  input { padding: .4rem; margin: .25rem 0; width: 100%; box-sizing: border-box; }
+  pre { background: #111; color: #0f0; padding: 1rem; border-radius: 6px; white-space: pre-wrap; max-height: 400px; overflow: auto; }
+  .code { font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>peak-operator</h1>
+
+<div class="op">
+  <h3>Reboot</h3>
+  <button onclick="run('reboot')">Reboot peak</button>
+</div>
+
+<div class="op">
+  <h3>Shutdown</h3>
+  <button onclick="run('shutdown')">Shutdown peak</button>
+</div>
+
+<div class="op">
+  <h3>Reboot docker compose</h3>
+  <p>/home/peak/docker-compose.yml</p>
+  <button onclick="run('docker-reboot')">Reboot compose</button>
+</div>
+
+<div class="op">
+  <h3>Connect to wifi</h3>
+  <input id="ssid" placeholder="SSID">
+  <input id="password" placeholder="Password" type="password">
+  <button onclick="run('wifi')">Connect</button>
+</div>
+
+<h3>Result</h3>
+<div>Exit code: <span id="code" class="code">-</span></div>
+<pre id="log">-</pre>
+
+<script>
+async function run(op) {
+  const body = { op };
+  if (op === 'wifi') {
+    body.ssid = document.getElementById('ssid').value;
+    body.password = document.getElementById('password').value;
+  }
+  document.getElementById('log').textContent = 'running...';
+  document.getElementById('code').textContent = '-';
+  const r = await fetch('/api/run', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const data = await r.json();
+  document.getElementById('code').textContent = data.code;
+  document.getElementById('log').textContent = (data.stdout || '') + (data.stderr ? '\n[stderr]\n' + data.stderr : '') + (data.error ? '\n[error]\n' + data.error : '');
+}
+</script>
+</body>
+</html>
